@@ -1,11 +1,175 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="https://code.highcharts.com/modules/treemap.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <link rel="stylesheet" type="text/css" href="estilo.css"/>
   </head>
 
   <body>
-    <h1>TreeMap</h1>   
+    <figure class="highcharts-figure">
+      <div id="container"></div>
+    </figure>   
   </body>
 
  </html>
+
+ <script>
+
+  Highcharts.getJSON('datos.json', function (data) {
+
+    var points = [],
+        movie,
+        movieI,
+        movieP,
+        yearP,
+        yearVal,
+        yearI = 0,
+        rankP,
+        rankI,
+        timeP,
+        timeI,
+        titleP,
+        titleI,
+        infoP,
+        infoI,
+        year,
+        rank,
+        time,
+        title,
+        info,
+        infoName = {
+            'director': 'Director',
+            'cast': 'Cast',
+            'country': 'Country',
+            'date_added': 'Date Added',
+            'listed_in': 'Category',
+            "description": 'Description'
+        };
+
+    function getRndInteger(min, max) {
+      return Math.floor(Math.random() * (max - min + 1) ) + min;
+    }
+
+
+    for (year in data) {
+        if (data.hasOwnProperty(year)) {
+            yearVal = 0;
+            yearP = {
+                id: 'id_' + yearI,
+                name: year,
+                color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+            };
+            rankI = 0;
+            for (rank in data[year]) {
+                if (data[year].hasOwnProperty(rank)) {
+                    rankP = {
+                        id: yearP.id + '_' + rankI,
+                        name: rank,
+                        parent: yearP.id,
+                        color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                    };
+                    timeI = 0;
+                    for (time in data[year][rank]) {
+                        if (data[year][rank].hasOwnProperty(time)) {
+                            timeP = {
+                                id: rankP.id + '_' + timeI,
+                                name: time,
+                                parent: rankP.id,
+                                color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                            };
+                            titleI = 0;
+                            for (title in data[year][rank][time]){
+                              if(data[year][rank][time].hasOwnProperty(title)){
+                                titleP = {
+                                  id: timeP.id + '_' + titleI,
+                                  name: title,
+                                  parent: timeP.id, 
+                                  color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                };
+                                infoI = 0;
+                                for(info in data[year][rank][time][title]){
+                                  if(data[year][rank][time][title].hasOwnProperty(info)){
+                                    infoP = {
+                                        id: titleP.id + '_' + infoI,
+                                        name: info,
+                                        parent: titleP.id,
+                                        color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                    };
+                                    movieI = 0;
+                                    for(movie in data[year][rank][time][title][info]){
+                                      if(data[year][rank][time][title][info].hasOwnProperty(movie)){
+                                        movieP = {
+                                            id: infoP.id + '_' + movieI,
+                                            name: infoName[movie] + " : " + data[year][rank][time][title][info][movie],
+                                            parent: infoP.id,
+                                            value: 6,
+                                            color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                        };
+                                        points.push(movieP);
+                                        movieI = movieI + 1;
+                                      }
+                                    }
+                                    infoP.value = Math.round(6)
+                                    points.push(infoP);
+                                    infoI = infoI + 1;
+                                  }
+                                }
+                                titleP.value = Math.round(infoI);
+                                points.push(titleP);
+                                titleI = titleI + 1;
+                              }
+                            }
+                            timeP.value = Math.round(titleI);
+                            points.push(timeP);
+                            timeI = timeI + 1;
+                        }
+                    }
+                    rankP.value = Math.round(timeI);
+                    points.push(rankP);
+                    rankI = rankI + 1;
+                }
+            }
+            yearP.value = Math.round(rankI);
+            points.push(yearP);
+            yearI = yearI + 1;
+        }
+    }
+
+    console.log(points);
+
+    Highcharts.chart('container', {
+        plotOptions: {
+          series: {
+            turboThreshold: 10000 // Comment out this code to display error
+          }
+        },
+        series: [{
+            type: 'treemap',
+            layoutAlgorithm: 'squarified',
+            allowDrillToNode: true,
+            animationLimit: 1000,
+            dataLabels: {
+                enabled: false
+            },
+            levelIsConstant: false,
+            levels: [{
+                level: 1,
+                dataLabels: {
+                    enabled: true
+                },
+                borderWidth: 3
+            }],
+            data: points
+        }],
+        title: {
+            text: 'Películas de Netflix'
+        }
+    });
+
+});
+   
+ </script>
