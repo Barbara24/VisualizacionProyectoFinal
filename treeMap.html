@@ -19,7 +19,7 @@
 
  <script>
 
-  Highcharts.getJSON('datos.json', function (data) {
+  Highcharts.getJSON('movies.json', function (data) {
 
     var points = [],
         movie,
@@ -50,8 +50,20 @@
             "description": 'Description'
         };
 
-    function getRndInteger(min, max) {
-      return Math.floor(Math.random() * (max - min + 1) ) + min;
+    function getRandColor(same, darkness) {
+        //6 levels of brightness from 0 to 5, 0 being the darkest
+        var rgb = [];
+        if(same && lastColor) {
+            rgb = lastColor;
+        } else {
+            rgb = [Math.random() * 256, Math.random() * 256, Math.random() * 256];
+        }
+        var mix = [darkness * 51, darkness * 51, darkness * 51]; //51 => 255/5
+        var mixedrgb = [rgb[0] + mix[0], rgb[1] + mix[1], rgb[2] + mix[2]].map(function (x) {
+            return Math.round(x / 2.0)
+        })
+        lastColor = rgb;
+        return "rgb(" + mixedrgb.join(",") + ")";
     }
 
 
@@ -61,7 +73,6 @@
             yearP = {
                 id: 'id_' + yearI,
                 name: year,
-                color: Highcharts.getOptions().colors[getRndInteger(0,255)]
             };
             rankI = 0;
             for (rank in data[year]) {
@@ -70,7 +81,7 @@
                         id: yearP.id + '_' + rankI,
                         name: rank,
                         parent: yearP.id,
-                        color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                        color: getRandColor(false,1)
                     };
                     timeI = 0;
                     for (time in data[year][rank]) {
@@ -79,7 +90,7 @@
                                 id: rankP.id + '_' + timeI,
                                 name: time,
                                 parent: rankP.id,
-                                color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                color: getRandColor(true,3)
                             };
                             titleI = 0;
                             for (title in data[year][rank][time]){
@@ -87,8 +98,8 @@
                                 titleP = {
                                   id: timeP.id + '_' + titleI,
                                   name: title,
-                                  parent: timeP.id, 
-                                  color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                  parent: timeP.id,
+                                  color: getRandColor(true,5)
                                 };
                                 infoI = 0;
                                 for(info in data[year][rank][time][title]){
@@ -97,7 +108,7 @@
                                         id: titleP.id + '_' + infoI,
                                         name: info,
                                         parent: titleP.id,
-                                        color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                        color: getRandColor(true,7)
                                     };
                                     movieI = 0;
                                     for(movie in data[year][rank][time][title][info]){
@@ -107,7 +118,7 @@
                                             name: infoName[movie] + " : " + data[year][rank][time][title][info][movie],
                                             parent: infoP.id,
                                             value: 6,
-                                            color: Highcharts.getOptions().colors[getRndInteger(0,255)]
+                                            color: getRandColor(true,9)
                                         };
                                         points.push(movieP);
                                         movieI = movieI + 1;
